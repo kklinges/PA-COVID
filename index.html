@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>COVID-19 in PA</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css" rel="stylesheet" />
+<style>
+	body {
+  margin: 0;
+  padding: 0;
+}
+
+h2,
+h3 {
+  margin: 10px;
+  font-size: 1.2em;
+}
+
+h3 {
+  font-size: 1em;
+}
+
+	h4{
+		font-size: 14px;
+		margin: 1px;
+	}
+
+p {
+  font-size: 0.85em;
+  margin: 10px;
+  text-align: left;
+}
+
+/**
+* Create a position for the map
+* on the page */
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+/**
+* Set rules for how the map overlays
+* (information box and legend) will be displayed
+* on the page. */
+.map-overlay {
+	  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(183, 210, 203, 0.69);
+  margin-right: 20px;
+  font-family: Calibri, sans-serif;
+  overflow: auto;
+  border-radius: 3px;
+}
+
+#features {
+  color: #484848;
+  top: 0;
+  height: 200px;
+  margin-top: 20px;
+  width: 250px;
+}
+
+#titlebox{
+  color: #484848;
+  top: 0;
+  height: 50px;
+  margin-top: 20px;
+  width: 330px;
+	}
+.title-box{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: rgba(183, 210, 203, 0.69);
+  margin-left: 20px;
+  font-family: Calibri, sans-serif;
+  overflow: auto;
+  border-radius: 2px;	
+	}
+#legend {
+	color: #484848;
+  padding: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  line-height: 18px;
+  height: 190px;
+  margin-bottom: 40px;
+  width: 200px;
+}
+
+.legend-key {
+  display: inline-block;
+  border-radius: 20%;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+.mapboxgl-popup-content {
+    color: #484848;
+    background-color: rgba(183, 210, 203, 0.78);
+    border-color: #6D7E79;
+    max-width: 250px;
+    box-shadow: 3px 3px 2px #6D7E79;
+    font-family: Calibri, sans-serif;
+}
+
+
+
+</style>
+</head>
+<body>
+<div id="map"></div>
+    <div class='map-overlay' id='features'><div id='pd'><p>Hover over a county for more info</p></div></div>
+<div class='map-overlay' id='legend'><h2>Total confirmed cases</h2></div>
+<div class='title-box' id='titlebox'><h2>Overview of COVID-19 in Pennsylvania</h2></div>
+<script>
+
+    mapboxgl.accessToken = 'pk.eyJ1Ijoia2VyaWtsaW5nZXMiLCJhIjoiY2s4YnYwc3AxMGN0MjNra2F0a3k0cWNrayJ9.ueaghC1N7GY5FI9ArXr8wg';
+        
+        
+    var map = new mapboxgl.Map({
+  container: 'map', // container id
+
+  style: 'mapbox://styles/keriklinges/ck9n01n1x48im1iojzifa7uvj',
+  center: [-77.822079, 40.869177],
+  zoom: 6
+})
+/////////////////////////////////////
+	
+    map.on('load', function() {
+
+	////////////////////////////////////Click county for popup////////////////////////////////
+
+ 
+// Add a layer showing the state polygons.
+map.addLayer({
+'id': 'counties-layer',
+'type': 'fill',
+'source': {
+        type: 'vector',
+        url: 'mapbox://keriklinges.8ttzs5vt'
+      },
+	      'source-layer': 'PA_COVID_data-69yvvc',
+
+'paint': {
+'fill-color': 'rgba(200, 100, 240, 0)',
+'fill-outline-color': 'rgba(232, 183, 135, 0.88)'
+}
+});
+ 
+
+map.on('click', 'counties-layer', function(e) {
+	
+new mapboxgl.Popup()
+.setLngLat(e.lngLat)
+.setHTML('<h4>COVID-19 in Nursing Home/Personal Care Facilities</h4>'+ '<br>'+'<b>Facilities with cases: </b>' + e.features[0].properties["Number of Facilities with Cases"]
+		+ '<br>' + "<b>Resident cases: </b>" + e.features[0].properties["Number of Cases Among Residents"]
+		 + '<br>' + "<b>Employee cases: </b>" + e.features[0].properties["Number of Cases Among Employees"]
+		 + '<br>' + "<b>Deaths among residents and employees: </b>" + e.features[0].properties["Number of Deaths"]
+		)
+.addTo(map);
+});
+ 
+// Change the cursor to a pointer when the mouse is over the states layer.
+map.on('mouseenter', 'counties-layer', function() {
+map.getCanvas().style.cursor = 'pointer';
+});
+ 
+// Change it back to a pointer when it leaves.
+map.on('mouseleave', 'counties-layer', function() {
+map.getCanvas().style.cursor = '';
+});
+
+		
+		
+////////////Highlight county on hover-- not working////////////////
+/*map.addLayer({
+'id': 'fills',
+'type': 'fill',
+'source': {
+        type: 'vector',
+        url: 'mapbox://keriklinges.8ttzs5vt'
+      },
+	      'source-layer': 'PA_COVID_data-69yvvc',
+'layout': {},
+'paint': {
+'fill-color': '#627BC1',
+'fill-opacity': [
+'case',
+['boolean', ['feature-state', 'hover'], false],
+1,
+0.5
+]
+}
+});		
+
+map.addLayer({
+'id': 'borders',
+'type': 'line',
+'source': {
+        type: 'vector',
+        url: 'mapbox://keriklinges.8ttzs5vt'
+      },
+	      'source-layer': 'PA_COVID_data-69yvvc',
+'layout': {},
+'paint': {
+'line-color': '#627BC1',
+'line-width': 2
+}
+});
+ 
+// When the user moves their mouse over the state-fill layer, we'll update the
+// feature state for the feature under the mouse.
+map.on('mousemove', 'fills', function(e) {
+if (e.features.length > 0) {
+if (hoveredStateId) {
+map.setFeatureState(
+{ source: {
+        type: 'vector',
+        url: 'mapbox://keriklinges.8ttzs5vt'
+      }, id: hoveredStateId },
+{ hover: false }
+);
+}
+hoveredStateId = e.features[0].id;
+map.setFeatureState(
+{ source: {
+        type: 'vector',
+        url: 'mapbox://keriklinges.8ttzs5vt'
+      }, id: hoveredStateId },
+{ hover: true }
+);
+}
+});
+ 
+// When the mouse leaves the state-fill layer, update the feature state of the
+// previously hovered feature.
+map.on('mouseleave', 'fills', function() {
+if (hoveredStateId) {
+map.setFeatureState(
+{ source: {
+        type: 'vector',
+        url: 'mapbox://keriklinges.8ttzs5vt'
+      }, id: hoveredStateId },
+{ hover: false }
+);
+}
+hoveredStateId = null;
+});*/
+		
+
+	
+//////////////////////////////////Display info on hover/////////////////////////////////
+map.on('mousemove', function(e) {
+	                               
+	
+  var counties = map.queryRenderedFeatures(e.point, {
+    layers: ['Updated Case Counts']
+  });
+  if (counties.length > 0) {
+    document.getElementById('pd').innerHTML = '<h3><strong>' + counties[0].properties.county_nam + " County"
+		+ '</strong></h3><p><strong><em>' + counties[0].properties["Total Cases"]  + '</strong> confirmed cases</em></p>'
+	  		+ '</strong></h3><p><strong><em>' + counties[0].properties["Negatives"]  + '</strong> negatives</em></p>'
+	 + '</strong></h3><p><strong><em>' + counties[0].properties["Deaths"]  + '</strong> deaths</em></p>'
+
+	  ;
+  } else {
+    document.getElementById('pd').innerHTML = '<p>This map is based on data from the PA Department of Health and is accurate as of April 30th, 2020.</p>' + '<p> Data is updated daily. See health.pa.gov for most recent case counts.'+'<p><b>For general info, hover over a county. For info about COVID-19 in nursing homes and personal care homes, click on a county.</b></p>';
+  }
+})
+});
+//////////////////////////Legend/////////////////////////////////////////
+  var layers = ['1-10', '10-50', '50-100', '100-500', '500-1,000', '1,000-2,000', '2,000-10,000',  '10,000+'];
+var colors = ['#ffffe7', '#fef2bd', '#ffe98a', '#ffd05c', '#f7bd2f', '#db9e07', '#b17e00', '#886100', '#3d2e00'];
+        
+for (i = 0; i < layers.length; i++) {
+  var layer = layers[i];
+  var color = colors[i];
+  var item = document.createElement('div');
+  var key = document.createElement('span');
+  key.className = 'legend-key';
+  key.style.backgroundColor = color;
+
+  var value = document.createElement('span');
+  value.innerHTML = layer;
+  item.appendChild(key);
+  item.appendChild(value);
+  legend.appendChild(item);
+}
+
+        
+map.getCanvas().style.cursor = 'default';
+        
+
+
+    
+
+
+        
+      </script>
